@@ -1,22 +1,5 @@
 import numpy as np
 
-# Modelin başlangıç ağırlıklarını (w1, w2, w3, Ø), öğrenme hızı parametresini (ζ) ve eğitimin en fazla kaç tekrar
-# yapılacağına ilişkin epoch sınırını(epoch_max) kullanıcıdan alma
-print(
-    "Ağırlık değerlerini(w1, w2, w3, Ø), öğrenme hızı parametresini(ζ) ve eğitimin en fazla kaç tekrar yapılacağına "
-    "ilişkin epoch sınırını(epoch_max) giriniz:")
-w1 = float(input("w1 (0-1 aralığında): "))
-w2 = float(input("w2 (0-1 aralığında): "))
-bias = float(input("Bias (0-1 aralığında): "))
-learning_rate = float(input("Öğrenme hızı ζ (0-1 aralığında): "))
-momentum = 0.8  # Momentum katsayısı
-epoch_max = int(input("Epochmax değeri: "))
-
-# Ağırlıkların ve bias'ın vektör olarak tanımlanması
-weights = np.array([w1, w2])
-bias_weight = bias
-
-
 # Sigmoid aktivasyon fonksiyonu ve türevi
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -34,23 +17,29 @@ X = np.array([
 
 y = np.array([[0], [1], [1], [0]])  # Gerçek çıktılar
 
-# Ağ mimarisi: 2 giriş, 2 gizli, 1 çıkış nöronu
-input_neurons = 2
-hidden_neurons = 2
-output_neurons = 1
+# Kullanıcıdan model parametrelerini alma
+print("Ağırlık değerlerini (w1, w2, w3, w4, w5, w6) ve bias değerlerini (b1, b2, b3) giriniz:")
+w1 = float(input("w1 (Giriş 1 -> Gizli Nöron 1): "))
+w2 = float(input("w2 (Giriş 2 -> Gizli Nöron 1): "))
+w3 = float(input("w3 (Giriş 1 -> Gizli Nöron 2): "))
+w4 = float(input("w4 (Giriş 2 -> Gizli Nöron 2): "))
+w5 = float(input("w5 (Gizli Nöron 1 -> Çıkış): "))
+w6 = float(input("w6 (Gizli Nöron 2 -> Çıkış): "))
 
-# Rastgele ağırlıkları ve biasları başlatma ([-1, 1] arasında)
-np.random.seed(42)
-weights_input_hidden = np.random.uniform(-1, 1, (input_neurons, hidden_neurons))
-bias_hidden = np.random.uniform(-1, 1, (1, hidden_neurons))
-weights_hidden_output = np.random.uniform(-1, 1, (hidden_neurons, output_neurons))
-bias_output = np.random.uniform(-1, 1, (1, output_neurons))
+b1 = float(input("Bias (Gizli Nöron 1 için): "))
+b2 = float(input("Bias (Gizli Nöron 2 için): "))
+b3 = float(input("Bias (Çıkış Nöronu için): "))
 
-# Öğrenme oranı
-learning_rate = 0.1
+learning_rate = float(input("Öğrenme hızı ζ (0-1 aralığında): "))
+epoch_max = int(input("Epochmax değeri: "))
+
+# Kullanıcıdan alınan ağırlıkları ve biasları vektör olarak başlatma
+weights_input_hidden = np.array([[w1, w3], [w2, w4]])  # Girişten gizli katmana
+bias_hidden = np.array([[b1, b2]])                     # Gizli katman biasları
+weights_hidden_output = np.array([[w5], [w6]])         # Gizli katmandan çıkışa
+bias_output = np.array([[b3]])                         # Çıkış katmanı biası
 
 # Eğitim döngüsü
-epoch_max = 100000
 for epoch in range(epoch_max):
     # İleri yayılım
     hidden_input = np.dot(X, weights_input_hidden) + bias_hidden
@@ -74,11 +63,22 @@ for epoch in range(epoch_max):
     bias_hidden += np.sum(delta_hidden, axis=0, keepdims=True) * learning_rate
 
     # Hata kontrolü
-    if epoch % 10000 == 0:
-        total_error = np.mean(np.abs(error))
-        print(f"Epoch: {epoch}, Hata: {total_error:.4f}")
-        if total_error < 0.01:
-            break
+    total_error = np.mean(np.abs(error))
+
+    # Her epoch'ta ağırlık ve bias değerlerini yazdır
+    print(f"\nEpoch: {epoch + 1}")
+    print(f"Toplam Hata: {total_error:.4f}")
+    print(f"Ağırlıklar (W1, W2, W3, W4):\n{weights_input_hidden}")
+    print(f"Bias (B1, B2):\n{bias_hidden}")
+    print(f"Ağırlıklar (W5, W6):\n{weights_hidden_output}")
+    print(f"Bias (B3):\n{bias_output}")
+
+    # Hedef hata değerine ulaşıldıysa eğitimi sonlandır
+    if total_error < 0.01:
+        print(f"\nEğitim, {epoch + 1} epoch sonunda ve {total_error:.4f} hatayla tamamlanmıştır.")
+        break
+else:
+    print(f"\nEpoch sınırına ulaşıldı ({epoch_max} epoch), ancak öğrenme tamamlanamadı. Hata: {total_error:.4f}")
 
 # Eğitim Sonucu
 print("\nEğitim tamamlandı!")
